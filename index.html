@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador Simple de Política de Privacidad</title>
+<style>
+:root{
+  --bg:#f4f7fb;--card:#fff;--text:#1f2937;--muted:#667085;--line:#d8e0e9;
+  --primary:#0b5cb8;--primary2:#084a95;--soft:#eaf3ff;--success:#14804a;--warn:#8a5a00;
+  --radius:16px;--shadow:0 12px 28px rgba(15,23,42,.07);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.wrapper{max-width:1080px;margin:auto;padding:26px 16px 60px}
+.hero{background:linear-gradient(135deg,#0b5cb8,#123d70);color:#fff;border-radius:22px;padding:28px 30px;box-shadow:var(--shadow)}
+.hero h1{margin:0 0 8px;font-size:clamp(28px,4vw,42px)}
+.hero p{margin:0;max-width:820px;opacity:.96}
+.hero .tag{display:inline-block;margin-top:14px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);padding:8px 11px;border-radius:999px;font-size:13px}
+.steps{display:flex;gap:8px;margin:18px 0;overflow:auto}
+.step{flex:1;min-width:160px;background:#fff;border:1px solid var(--line);padding:11px 13px;border-radius:12px;color:var(--muted);font-weight:700;text-align:center}
+.step.active{background:var(--soft);color:var(--primary);border-color:#9cc7f4}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)}
+.screen{display:none}.screen.active{display:block}
+h2{margin:0 0 6px;font-size:26px}.sub{color:var(--muted);margin:0 0 22px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field{margin-bottom:17px}.field label.title{display:block;font-weight:750;margin-bottom:7px}
+input,select,textarea{width:100%;padding:12px 13px;border:1px solid #c9d2dc;border-radius:10px;font:inherit;color:var(--text);background:#fff}
+textarea{min-height:92px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#62a5e9;box-shadow:0 0 0 3px rgba(11,92,184,.1)}
+.hint{font-size:13px;color:var(--muted);margin-top:6px}
+.options{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.option{border:1px solid var(--line);padding:12px;border-radius:11px;display:flex;gap:10px;align-items:flex-start}
+.option:hover{background:#fbfdff;border-color:#b8d2ed}
+input[type=checkbox],input[type=radio]{width:18px;height:18px;margin-top:2px;accent-color:var(--primary)}
+.preset{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:8px 0 18px}
+.preset button{border:1px solid var(--line);background:#fff;padding:12px;border-radius:11px;font-weight:750;cursor:pointer}
+.preset button:hover{border-color:#9cc7f4;background:#f7fbff}
+.note{padding:12px 14px;border-radius:10px;background:#f8fafc;border:1px solid var(--line);font-size:14px;color:#475467;margin:14px 0}
+.warn{background:#fff8e6;border-color:#f1d28a;color:#74540f}
+details{border:1px solid var(--line);border-radius:12px;padding:0 14px;margin-top:14px;background:#fbfcfe}
+details summary{cursor:pointer;padding:13px 0;font-weight:800;color:#344054}
+.advanced{padding-bottom:14px}
+.actions{display:flex;justify-content:space-between;gap:12px;margin-top:24px;flex-wrap:wrap}
+button{font:inherit}
+.btn{border:0;border-radius:10px;padding:12px 17px;font-weight:800;cursor:pointer}
+.btn-gray{background:#e9eef4;color:#344054}.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary2)}
+.btn-success{background:var(--success);color:#fff}.btn-outline{background:#fff;border:1px solid var(--line);color:#344054}
+.output-tools{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+.tab{border:0;border-radius:9px;padding:9px 12px;background:#eef2f6;color:#475467;font-weight:800;cursor:pointer}
+.tab.active{background:#dbeafe;color:#0b5cb8}
+.output{border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden}
+.preview{padding:26px;line-height:1.67}.preview h1{font-size:32px}.preview h2{font-size:21px;margin-top:28px}
+.code{display:none;width:100%;min-height:440px;border:0;border-radius:0;padding:16px;background:#0f172a;color:#e2e8f0;font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.code.active{display:block}.preview.hidden{display:none}
+.summary{background:#f8fafc;border:1px solid var(--line);border-radius:11px;padding:13px;font-size:14px}
+.small{font-size:13px;color:var(--muted)}
+footer{text-align:center;color:var(--muted);font-size:13px;margin-top:22px}
+@media(max-width:800px){.grid,.options,.preset{grid-template-columns:1fr}.card{padding:18px}.step{min-width:130px}}
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <section class="hero">
+    <h1>Generador Simple de Política de Privacidad</h1>
+    <p>Completa solo lo esencial. El generador agrega automáticamente cláusulas para México, Estados Unidos, Analytics, reCAPTCHA, cookies, pagos, marketing, transferencias y derechos de privacidad.</p>
+    <span class="tag">Todo funciona localmente en tu navegador</span>
+  </section>
+
+  <div class="steps">
+    <div class="step active" data-s="1">1. Negocio</div>
+    <div class="step" data-s="2">2. Qué usa el sitio</div>
+    <div class="step" data-s="3">3. Contacto</div>
+    <div class="step" data-s="4">4. Generar</div>
+  </div>
+
+  <section class="card">
+    <div class="screen active" data-screen="1">
+      <h2>1. Datos básicos</h2>
+      <p class="sub">Solo llena lo que normalmente ya sabes del cliente.</p>
+
+      <div class="grid">
+        <div class="field">
+          <label class="title">Nombre del sitio</label>
+          <input id="siteName" placeholder="Grupo Lince Seguridad">
+        </div>
+        <div class="field">
+          <label class="title">URL</label>
+          <input id="siteUrl" type="url" placeholder="https://ejemplo.com">
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="title">Nombre legal o responsable</label>
+        <input id="responsible" placeholder="Grupo Lince Seguridad, S.A. de C.V.">
+        <div class="hint">Si no tienes razón social, puedes poner el nombre comercial o el nombre de la persona responsable.</div>
+      </div>
+
+      <div class="grid">
+        <div class="field">
+          <label class="title">País / cobertura legal</label>
+          <select id="jurisdiction">
+            <option value="MX">México</option>
+            <option value="US">Estados Unidos</option>
+            <option value="BOTH">México + Estados Unidos</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="title">Estado / entidad</label>
+          <input id="state" placeholder="Ciudad de México / California">
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="title">Domicilio del responsable</label>
+        <input id="address" placeholder="Calle, número, colonia, ciudad, estado, C.P., país">
+        <div class="hint">Para México conviene usar el domicilio completo del responsable.</div>
+      </div>
+
+      <div class="field">
+        <label class="title">Idioma de la política</label>
+        <select id="language">
+          <option value="es">Español</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+
+      <div class="actions"><span></span><button class="btn btn-primary" onclick="go(2)">Siguiente →</button></div>
+    </div>
+
+    <div class="screen" data-screen="2">
+      <h2>2. ¿Qué usa el sitio?</h2>
+      <p class="sub">Marca lo que aplique. Nosotros completamos el texto legal automáticamente.</p>
+
+      <div class="preset">
+        <button onclick="applyPreset('basic')">Sitio básico</button>
+        <button onclick="applyPreset('wp')">WordPress típico</button>
+        <button onclick="applyPreset('shop')">Tienda / pagos</button>
+      </div>
+
+      <div class="options">
+        <label class="option"><input type="checkbox" class="feature" value="contact" checked> <span><strong>Formulario de contacto</strong><br><span class="small">Nombre, correo, teléfono, mensajes.</span></span></label>
+        <label class="option"><input type="checkbox" class="feature" value="analytics"> <span><strong>Google Analytics</strong><br><span class="small">Cookies, IP, dispositivo y navegación.</span></span></label>
+        <label class="option"><input type="checkbox" class="feature" value="recaptcha"> <span><strong>Google reCAPTCHA</strong><br><span class="small">Prevención de spam y abuso.</span></span></label>
+        <label class="option"><input type="checkbox" class="feature" value="gtm"> <span><strong>Google Tag Manager</strong></span></label>
+        <label class="option"><input type="checkbox" class="feature" value="meta"> <span><strong>Meta Pixel / Ads</strong><br><span class="small">Publicidad y remarketing.</span></span></label>
+        <label class="option"><input type="checkbox" class="feature" value="newsletter"> <span><strong>Newsletter / emails</strong></span></label>
+        <label class="option"><input type="checkbox" class="feature" value="payments"> <span><strong>Pagos en línea</strong><br><span class="small">Stripe, PayPal, Mercado Pago, etc.</span></span></label>
+        <label class="option"><input type="checkbox" class="feature" value="account"> <span><strong>Cuentas de usuario</strong></span></label>
+        <label class="option"><input type="checkbox" class="feature" value="maps"> <span><strong>Google Maps / Places</strong></span></label>
+        <label class="option"><input type="checkbox" class="feature" value="youtube"> <span><strong>YouTube / videos embebidos</strong></span></label>
+        <label class="option"><input type="checkbox" class="feature" value="cloudflare"> <span><strong>Cloudflare / seguridad</strong></span></label>
+        <label class="option"><input type="checkbox" class="feature" value="chat"> <span><strong>Chat / WhatsApp / soporte</strong></span></label>
+      </div>
+
+      <details>
+        <summary>Opciones avanzadas</summary>
+        <div class="advanced">
+          <div class="grid">
+            <div class="field">
+              <label class="title">Otros proveedores</label>
+              <input id="otherProviders" placeholder="Ej. HubSpot, Twilio, Firebase...">
+            </div>
+            <div class="field">
+              <label class="title">Otros datos recopilados</label>
+              <input id="otherData" placeholder="Ej. RFC, empresa, puesto...">
+            </div>
+          </div>
+          <div class="grid">
+            <div class="field">
+              <label class="title">¿Recopilas datos sensibles?</label>
+              <select id="sensitive"><option value="no">No</option><option value="yes">Sí</option></select>
+            </div>
+            <div class="field">
+              <label class="title">¿Recopilas datos de menores de 13 años?</label>
+              <select id="children"><option value="no">No</option><option value="yes">Sí</option></select>
+            </div>
+          </div>
+          <div class="grid">
+            <div class="field">
+              <label class="title">¿Vendes o compartes datos para publicidad?</label>
+              <select id="saleShare"><option value="no">No</option><option value="yes">Sí</option></select>
+            </div>
+            <div class="field">
+              <label class="title">¿Tienes usuarios de la Unión Europea?</label>
+              <select id="gdpr"><option value="no">No / no es relevante</option><option value="yes">Sí</option></select>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <div class="actions"><button class="btn btn-gray" onclick="go(1)">← Anterior</button><button class="btn btn-primary" onclick="go(3)">Siguiente →</button></div>
+    </div>
+
+    <div class="screen" data-screen="3">
+      <h2>3. Contacto y derechos</h2>
+      <p class="sub">Con esto el generador arma ARCO, revocación, limitación y solicitudes de privacidad.</p>
+
+      <div class="grid">
+        <div class="field">
+          <label class="title">Correo de privacidad</label>
+          <input id="email" type="email" placeholder="privacidad@ejemplo.com">
+        </div>
+        <div class="field">
+          <label class="title">Teléfono</label>
+          <input id="phone" placeholder="+52 55 0000 0000">
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="title">Página o formulario de contacto</label>
+        <input id="contactUrl" type="url" placeholder="https://ejemplo.com/contacto">
+      </div>
+
+      <div class="field">
+        <label class="title">Tiempo de conservación</label>
+        <select id="retention">
+          <option value="default">Usar texto recomendado automáticamente</option>
+          <option value="relationship">Mientras exista la relación y después durante los plazos legales</option>
+          <option value="24m">Hasta 24 meses después del último contacto, salvo obligación legal</option>
+          <option value="custom">Personalizado</option>
+        </select>
+      </div>
+      <div class="field" id="retentionCustomWrap" style="display:none">
+        <label class="title">Conservación personalizada</label>
+        <input id="retentionCustom" placeholder="Describe el plazo">
+      </div>
+
+      <details>
+        <summary>Opciones avanzadas de contacto</summary>
+        <div class="advanced">
+          <div class="field">
+            <label class="title">Mecanismo especial para solicitudes</label>
+            <textarea id="rightsMethod" placeholder="Puedes dejarlo vacío y se generará automáticamente."></textarea>
+          </div>
+          <div class="field">
+            <label class="title">Medidas de seguridad</label>
+            <textarea id="security" placeholder="Puedes dejarlo vacío y se generará automáticamente."></textarea>
+          </div>
+        </div>
+      </details>
+
+      <div class="note warn">La política generada es una base completa para sitios comunes, pero no sustituye asesoría jurídica cuando el negocio maneja datos sensibles, menores, salud, biométricos, crédito, seguros o sectores regulados.</div>
+
+      <div class="actions"><button class="btn btn-gray" onclick="go(2)">← Anterior</button><button class="btn btn-primary" onclick="go(4);generate()">Generar →</button></div>
+    </div>
+
+    <div class="screen" data-screen="4">
+      <h2>4. Política generada</h2>
+      <p class="sub">Lista para revisar, copiar o pegar en WordPress.</p>
+
+      <div id="summary" class="summary"></div>
+
+      <div class="output-tools">
+        <button class="tab active" onclick="tab('preview',this)">Vista previa</button>
+        <button class="tab" onclick="tab('plain',this)">Texto plano</button>
+        <button class="tab" onclick="tab('contenthtml',this)">HTML para WordPress</button>
+        <button class="tab" onclick="tab('fullhtml',this)">HTML completo</button>
+        <span style="flex:1"></span>
+        <button class="btn btn-outline" onclick="copyCurrent()">Copiar</button>
+        <button class="btn btn-outline" onclick="downloadTxt()">Descargar .txt</button>
+        <button class="btn btn-outline" onclick="downloadHtml()">Descargar .html</button>
+      </div>
+
+      <div class="output">
+        <div id="preview" class="preview"></div>
+        <textarea id="plain" class="code" readonly></textarea>
+        <textarea id="contenthtml" class="code" readonly></textarea>
+        <textarea id="fullhtml" class="code" readonly></textarea>
+      </div>
+
+      <div class="actions"><button class="btn btn-gray" onclick="go(3)">← Editar</button><button class="btn btn-success" onclick="generate()">↻ Regenerar</button></div>
+    </div>
+  </section>
+
+  <footer>Generador local · No almacena ni transmite la información capturada.</footer>
+</div>
+
+<script>
+let currentTab='preview';
+const $=id=>document.getElementById(id);
+const val=id=>($(id)?.value||'').trim();
+const esc=s=>(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const has=f=>[...document.querySelectorAll('.feature:checked')].some(x=>x.value===f);
+
+function go(n){
+  document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.dataset.screen==n));
+  document.querySelectorAll('.step').forEach(x=>x.classList.toggle('active',x.dataset.s==n));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function applyPreset(type){
+  document.querySelectorAll('.feature').forEach(x=>x.checked=false);
+  const set=(arr)=>arr.forEach(v=>{const el=[...document.querySelectorAll('.feature')].find(x=>x.value===v);if(el)el.checked=true});
+  if(type==='basic')set(['contact','recaptcha']);
+  if(type==='wp')set(['contact','analytics','recaptcha','gtm','cloudflare']);
+  if(type==='shop')set(['contact','analytics','recaptcha','gtm','payments','account','cloudflare']);
+}
+$('retention').addEventListener('change',()=>{$('retentionCustomWrap').style.display=val('retention')==='custom'?'block':'none'});
+
+function retentionText(es){
+  const r=val('retention');
+  if(r==='relationship') return es?'mientras exista la relación con el titular y posteriormente durante los plazos legales aplicables':'for the duration of the relationship with the data subject and thereafter for applicable legal retention periods';
+  if(r==='24m') return es?'hasta 24 meses después del último contacto, salvo que una obligación legal exija conservarlos por más tiempo':'for up to 24 months after the last contact, unless a legal obligation requires a longer period';
+  if(r==='custom'&&val('retentionCustom')) return val('retentionCustom');
+  return es?'durante el tiempo necesario para cumplir las finalidades informadas y posteriormente durante los plazos exigidos o permitidos por la legislación aplicable':'for as long as necessary to fulfill the disclosed purposes and thereafter for periods required or permitted by applicable law';
+}
+
+function buildParts(lang){
+  const es=lang==='es', site=val('siteName')||val('siteUrl')||(es?'este sitio web':'this website');
+  const url=val('siteUrl'), resp=val('responsible')||site, j=val('jurisdiction'), state=val('state'), address=val('address');
+  const email=val('email'), phone=val('phone'), contact=val('contactUrl');
+  const rights=val('rightsMethod')||(es?'enviar una solicitud al correo de privacidad indicado, señalando nombre del titular, medio para recibir respuesta, descripción clara del derecho que desea ejercer y datos suficientes para localizar la información; cuando sea razonablemente necesario podrá solicitarse documentación para acreditar identidad o representación':'submit a request to the privacy email listed below, including the data subject’s name, a method for receiving a response, a clear description of the right being exercised and enough information to locate the relevant data; reasonable documentation may be requested to verify identity or authority');
+  const security=val('security')||(es?'medidas administrativas, técnicas y físicas razonables y proporcionales al riesgo, incluyendo controles de acceso, HTTPS/TLS, actualización de sistemas, copias de seguridad y medidas de prevención frente a accesos no autorizados':'reasonable administrative, technical and physical safeguards proportionate to risk, including access controls, HTTPS/TLS, system updates, backups and measures designed to prevent unauthorized access');
+
+  const personal=[];
+  if(has('contact')) personal.push(es?'nombre, correo electrónico, número telefónico y contenido de mensajes o solicitudes':'name, email address, phone number and the content of messages or requests');
+  if(has('account')) personal.push(es?'datos de cuenta y credenciales de acceso':'account and login information');
+  if(has('payments')) personal.push(es?'datos relacionados con compras, pagos y transacciones; los datos completos de tarjeta normalmente son tratados directamente por el procesador de pagos':'purchase, payment and transaction-related data; full card data is normally processed directly by the payment processor');
+  if(has('analytics')||has('recaptcha')||has('gtm')||has('cloudflare')||has('meta')) personal.push(es?'dirección IP, navegador, dispositivo, sistema operativo, identificadores en línea, cookies, páginas visitadas, fecha y hora de acceso y eventos de navegación':'IP address, browser, device, operating system, online identifiers, cookies, pages visited, access date/time and browsing events');
+  if(val('otherData')) personal.push(val('otherData'));
+  if(val('sensitive')==='yes') personal.push(es?'datos personales sensibles expresamente proporcionados cuando resulte necesario':'sensitive personal information expressly provided where necessary');
+
+  const providers=[];
+  if(has('analytics'))providers.push('Google Analytics');
+  if(has('recaptcha'))providers.push('Google reCAPTCHA');
+  if(has('gtm'))providers.push('Google Tag Manager');
+  if(has('meta'))providers.push('Meta Pixel / Meta Ads');
+  if(has('payments'))providers.push(es?'proveedores de pago como Stripe, PayPal o Mercado Pago, según se habiliten':'payment providers such as Stripe, PayPal or Mercado Pago, as enabled');
+  if(has('maps'))providers.push('Google Maps / Places');
+  if(has('youtube'))providers.push('YouTube');
+  if(has('cloudflare'))providers.push('Cloudflare');
+  if(has('newsletter'))providers.push(es?'proveedores de correo o newsletter':'email or newsletter providers');
+  if(has('chat'))providers.push(es?'proveedores de chat, WhatsApp o soporte':'chat, WhatsApp or support providers');
+  if(val('otherProviders'))providers.push(val('otherProviders'));
+
+  const purposes=[es?'responder solicitudes, mensajes, cotizaciones y proporcionar atención al cliente':'respond to requests, messages and quotes and provide customer service'];
+  if(has('account'))purposes.push(es?'crear y administrar cuentas de usuario':'create and manage user accounts');
+  if(has('payments'))purposes.push(es?'procesar compras, pedidos, pagos y facturación':'process purchases, orders, payments and billing');
+  if(has('analytics'))purposes.push(es?'obtener estadísticas de uso, medir el rendimiento y mejorar el sitio':'obtain usage statistics, measure performance and improve the website');
+  if(has('recaptcha')||has('cloudflare'))purposes.push(es?'detectar spam, fraude, abuso, tráfico automatizado e incidentes de seguridad':'detect spam, fraud, abuse, automated traffic and security incidents');
+  if(has('newsletter'))purposes.push(es?'enviar comunicaciones comerciales o informativas cuando exista consentimiento u otra base legal aplicable':'send marketing or informational communications where consent or another applicable legal basis exists');
+  if(has('meta'))purposes.push(es?'medir campañas, atribuir conversiones, crear audiencias y realizar publicidad o remarketing cuando resulte permitido':'measure campaigns, attribute conversions, build audiences and carry out advertising or remarketing where permitted');
+  if(has('maps')||has('youtube'))purposes.push(es?'proporcionar contenido y funcionalidades integradas de terceros':'provide integrated third-party content and functionality');
+  purposes.push(es?'cumplir obligaciones legales y proteger derechos, seguridad e integridad del sitio':'comply with legal obligations and protect rights, security and website integrity');
+
+  const join=arr=>arr.length===1?arr[0]:arr.slice(0,-1).join(', ')+(es?' y ':' and ')+arr.at(-1);
+  const P=[];
+
+  P.push({h:es?'Política de Privacidad':'Privacy Policy',p:[
+    es?`Última actualización: ${new Date().toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'})}.`:`Last updated: ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}.`,
+    es?`${resp} ("el Responsable") opera ${site}${url?` (${url})`:''}. Esta Política explica cómo se recopilan, utilizan, comparten, conservan y protegen los datos personales relacionados con el uso del sitio.`:
+       `${resp} (the "Controller") operates ${site}${url?` (${url})`:''}. This Privacy Policy explains how personal information is collected, used, disclosed, retained and protected in connection with the website.`
+  ]});
+
+  P.push({h:es?'1. Responsable y contacto':'1. Controller and contact details',p:[
+    es?`Responsable: ${resp}.`:`Controller: ${resp}.`,
+    address?(es?`Domicilio: ${address}.`:`Address: ${address}.`):'',
+    state?(es?`Estado / entidad: ${state}.`:`State / region: ${state}.`):'',
+    email?(es?`Correo de privacidad: ${email}.`:`Privacy email: ${email}.`):'',
+    phone?(es?`Teléfono: ${phone}.`:`Phone: ${phone}.`):'',
+    contact?(es?`Página o formulario de contacto: ${contact}.`:`Contact page or form: ${contact}.`):''
+  ].filter(Boolean)});
+
+  P.push({h:es?'2. Datos personales que recopilamos':'2. Personal information we collect',p:[
+    personal.length?(es?`Dependiendo de cómo interactúes con el sitio, podemos recopilar ${join(personal)}.`:`Depending on how you interact with the website, we may collect ${join(personal)}.`):(es?'El sitio no ha declarado categorías específicas adicionales de datos personales en este generador.':'The website has not declared additional specific categories of personal information in this generator.'),
+    (has('analytics')||has('recaptcha')||has('gtm')||has('meta')||has('cloudflare'))?(es?'Parte de esta información puede recopilarse automáticamente mediante cookies, píxeles, etiquetas, registros del servidor y tecnologías similares.':'Some of this information may be collected automatically through cookies, pixels, tags, server logs and similar technologies.'):''
+  ].filter(Boolean)});
+
+  P.push({h:es?'3. Finalidades del tratamiento':'3. Purposes of processing',p:[
+    es?`Tratamos la información para ${join(purposes)}.`:`We process personal information to ${join(purposes)}.`,
+    has('newsletter')||has('meta')?(es?'Las finalidades comerciales o publicitarias se consideran secundarias cuando corresponda. El titular puede solicitar su limitación o dejar de recibir comunicaciones utilizando los medios indicados en esta política.':'Marketing or advertising purposes are treated as secondary where applicable. Individuals may request limitation or stop receiving communications using the methods described in this policy.'):''
+  ].filter(Boolean)});
+
+  P.push({h:es?'4. Cookies y tecnologías de rastreo':'4. Cookies and tracking technologies',p:[
+    (has('analytics')||has('recaptcha')||has('gtm')||has('meta')||has('cloudflare')||has('maps')||has('youtube'))?
+      (es?'El sitio puede utilizar cookies, almacenamiento local, píxeles, etiquetas, identificadores y tecnologías similares para funcionamiento, seguridad, medición, preferencias y, cuando corresponda, publicidad. Puedes controlar determinadas tecnologías desde tu navegador y, si el sitio implementa un banner o centro de preferencias, desde dicho mecanismo.':'The website may use cookies, local storage, pixels, tags, identifiers and similar technologies for functionality, security, measurement, preferences and, where applicable, advertising. Certain technologies can be controlled through your browser and, if the site provides a cookie banner or preference center, through that mechanism.'):
+      (es?'El sitio no ha declarado tecnologías de rastreo adicionales en este generador.':'The website has not declared additional tracking technologies in this generator.')
+  ]});
+
+  if(providers.length){
+    P.push({h:es?'5. Proveedores y servicios de terceros':'5. Service providers and third-party services',p:[
+      es?`Podemos utilizar servicios de terceros como ${join(providers)}. Estos proveedores pueden procesar información conforme a la configuración del sitio, los contratos aplicables y sus propios avisos de privacidad.`:
+         `We may use third-party services such as ${join(providers)}. These providers may process information according to the website configuration, applicable agreements and their own privacy notices.`,
+      has('analytics')?(es?'Google Analytics puede utilizar cookies e identificadores para generar información estadística sobre el uso del sitio, como páginas visitadas, sesiones, dispositivo, navegador, ubicación aproximada e interacciones.':'Google Analytics may use cookies and identifiers to generate statistical information about website use, such as pages visited, sessions, device, browser, approximate location and interactions.'):'',
+      has('recaptcha')?(es?'Google reCAPTCHA se utiliza para ayudar a distinguir entre usuarios humanos y tráfico automatizado, prevenir spam y proteger formularios. Puede procesar información técnica y de interacción necesaria para realizar esa evaluación.':'Google reCAPTCHA is used to help distinguish human users from automated traffic, prevent spam and protect forms. It may process technical and interaction data necessary to perform that assessment.'):'',
+      has('meta')?(es?'Meta Pixel puede utilizar identificadores y eventos de navegación para medición de campañas, atribución, creación de audiencias y publicidad personalizada cuando se encuentre habilitada y legalmente permitida.':'Meta Pixel may use identifiers and browsing events for campaign measurement, attribution, audience creation and personalized advertising where enabled and legally permitted.'):''
+    ].filter(Boolean)});
+  }
+
+  P.push({h:es?'6. Compartición y transferencias':'6. Disclosure and transfers',p:[
+    es?'Podemos compartir información con proveedores que prestan servicios por cuenta del Responsable, asesores profesionales, autoridades cuando exista una obligación legal y terceros necesarios para completar una transacción o prestar un servicio solicitado.':'We may disclose information to service providers acting on behalf of the Controller, professional advisers, authorities where legally required, and third parties necessary to complete a transaction or provide a requested service.',
+    providers.length?(es?'Algunos proveedores pueden operar infraestructura fuera del país del titular. Cuando corresponda, se adoptarán medidas razonables para proteger la información y realizar las transferencias conforme a la legislación aplicable.':'Some providers may operate infrastructure outside the individual’s country. Where applicable, reasonable safeguards will be used and transfers will be handled in accordance with applicable law.'):'',
+    val('saleShare')==='yes'?(es?'El sitio ha indicado que puede existir venta o compartición de información para fines publicitarios. Si una ley aplicable otorga derechos de exclusión, se deberán habilitar los mecanismos correspondientes.':'The website has indicated that sale or sharing of information for advertising may occur. Where applicable law provides opt-out rights, the corresponding mechanisms must be provided.'):(es?'No declaramos la venta de datos personales a cambio de dinero. El uso de tecnologías publicitarias, si se habilita, debe evaluarse conforme a la legislación aplicable.':'We do not declare the sale of personal information for money. The use of advertising technologies, if enabled, should be assessed under applicable law.')
+  ].filter(Boolean)});
+
+  P.push({h:es?'7. Conservación':'7. Retention',p:[
+    es?`Conservamos la información ${retentionText(true)}. Los plazos pueden variar según la naturaleza de los datos, obligaciones fiscales, contables, contractuales, de seguridad o defensa de reclamaciones.`:
+       `We retain information ${retentionText(false)}. Retention periods may vary depending on the nature of the data and tax, accounting, contractual, security or legal-claim requirements.`
+  ]});
+
+  P.push({h:es?'8. Seguridad':'8. Security',p:[
+    es?`Aplicamos ${security}. Ningún sistema es completamente seguro, por lo que no podemos garantizar seguridad absoluta.`:
+       `We use ${security}. No system is completely secure, so absolute security cannot be guaranteed.`
+  ]});
+
+  if(j==='MX'||j==='BOTH'){
+    P.push({h:es?'9. México — Aviso de privacidad, derechos ARCO, revocación y limitación':'9. Mexico — Privacy notice, ARCO rights, revocation and limitation',p:[
+      es?'Cuando resulte aplicable la legislación mexicana de protección de datos personales en posesión de particulares, el titular puede ejercer los derechos de Acceso, Rectificación, Cancelación y Oposición (ARCO), así como solicitar la revocación del consentimiento y la limitación del uso o divulgación de sus datos personales, en los casos y condiciones previstos por la ley.':
+         'Where Mexican private-sector data protection law applies, individuals may exercise Access, Rectification, Cancellation and Objection (ARCO) rights and may request revocation of consent and limitation of the use or disclosure of personal information where provided by law.',
+      es?`Para ejercer estos derechos: ${rights}.`:`To exercise these rights: ${rights}.`,
+      email?(es?`Las solicitudes pueden enviarse a ${email}${contact?` o mediante ${contact}`:''}.`:`Requests may be sent to ${email}${contact?` or through ${contact}`:''}.`):'',
+      val('sensitive')==='yes'?(es?'Cuando se traten datos personales sensibles, se aplicarán medidas reforzadas y se recabará consentimiento expreso cuando la legislación aplicable lo requiera.':'Where sensitive personal information is processed, enhanced safeguards will be used and express consent will be obtained where required by applicable law.'):''
+    ].filter(Boolean)});
+  }
+
+  if(j==='US'||j==='BOTH'){
+    P.push({h:es?'10. Estados Unidos y derechos estatales':'10. United States and state privacy rights',p:[
+      es?'Dependiendo del estado de residencia y de si el Responsable alcanza los umbrales legales aplicables, algunas personas pueden tener derechos adicionales de acceso, corrección, eliminación, portabilidad y exclusión de determinadas actividades de venta, compartición o publicidad dirigida.':
+         'Depending on the individual’s state of residence and whether the Controller meets applicable statutory thresholds, some individuals may have additional rights to access, correct, delete, obtain portability, and opt out of certain sale, sharing or targeted advertising activities.',
+      (state.toLowerCase().includes('california')||j==='US'||j==='BOTH')?(es?'Para residentes de California, si CCPA/CPRA resulta aplicable al Responsable, pueden existir derechos específicos a conocer, corregir, eliminar y optar por no participar en venta o compartición, además de protecciones frente a discriminación por ejercer esos derechos.':'For California residents, if the CCPA/CPRA applies to the Controller, specific rights may exist to know, correct, delete and opt out of sale or sharing, together with protections against discrimination for exercising those rights.'):''
+    ].filter(Boolean)});
+  }
+
+  if(val('gdpr')==='yes'){
+    P.push({h:es?'11. Usuarios del Espacio Económico Europeo / GDPR':'11. EEA users / GDPR',p:[
+      es?'Cuando el GDPR resulte aplicable, los interesados pueden tener derechos de acceso, rectificación, supresión, limitación, oposición, portabilidad y retirada del consentimiento, así como el derecho a presentar una reclamación ante una autoridad de control competente.':
+         'Where the GDPR applies, data subjects may have rights of access, rectification, erasure, restriction, objection, portability and withdrawal of consent, as well as the right to lodge a complaint with a competent supervisory authority.'
+    ]});
+  }
+
+  P.push({h:es?'12. Menores':'12. Children',p:[
+    val('children')==='yes'?
+      (es?'El sitio ha indicado que puede recopilar datos de menores de 13 años. Esto puede activar obligaciones especiales de consentimiento parental, información, minimización y seguridad. Este escenario requiere revisión jurídica específica antes de publicar la política o activar la recopilación.':
+          'The website has indicated that it may collect data from children under 13. This may trigger special parental-consent, notice, minimization and security obligations. This scenario should receive specific legal review before publication or collection begins.'):
+      (es?'El sitio no está dirigido a menores de 13 años y no busca recopilar conscientemente información personal de menores de esa edad. Si se detecta que se recibió información de un menor sin la autorización exigible, se tomarán medidas razonables para eliminarla.':
+          'The website is not directed to children under 13 and does not knowingly seek to collect personal information from children of that age. If such information is received without required authorization, reasonable steps will be taken to delete it.')
+  ]});
+
+  P.push({h:es?'13. Ejercicio de derechos y solicitudes':'13. Privacy requests',p:[
+    es?`Las solicitudes pueden enviarse ${email?`a ${email}`:'mediante los canales de contacto indicados'}${contact?` o mediante ${contact}`:''}. Podemos solicitar información razonablemente necesaria para verificar la identidad o representación y responderemos dentro de los plazos exigidos por la legislación aplicable.`:
+       `Requests may be submitted ${email?`to ${email}`:'through the contact methods listed'}${contact?` or through ${contact}`:''}. We may request information reasonably necessary to verify identity or authority and will respond within the time required by applicable law.`
+  ]});
+
+  P.push({h:es?'14. Cambios a esta política':'14. Changes to this policy',p:[
+    es?'Podemos modificar esta Política de Privacidad cuando cambien las prácticas del sitio, proveedores, funcionalidades o requisitos legales. La versión vigente se publicará en esta misma página con su fecha de actualización.':
+       'We may modify this Privacy Policy when website practices, providers, functionality or legal requirements change. The current version will be posted on this page with its updated date.'
+  ]});
+
+  P.push({h:es?'15. Contacto':'15. Contact',p:[
+    es?`Para preguntas sobre privacidad, contacta a ${resp}${email?` en ${email}`:''}${phone?` o al ${phone}`:''}.`:
+       `For privacy questions, contact ${resp}${email?` at ${email}`:''}${phone?` or by phone at ${phone}`:''}.`
+  ]});
+  return P;
+}
+
+function partsHtml(parts){
+  return parts.map((x,i)=>`<${i===0?'h1':'h2'}>${esc(x.h)}</${i===0?'h1':'h2'}>`+x.p.map(p=>`<p>${esc(p)}</p>`).join('')).join('\n');
+}
+function partsPlain(parts){return parts.map(x=>x.h+'\n\n'+x.p.join('\n\n')).join('\n\n');}
+function standalone(content,lang){
+  return `<!DOCTYPE html>
+<html lang="${lang}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${lang==='es'?'Política de Privacidad':'Privacy Policy'}</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;max-width:900px;margin:40px auto;padding:0 20px;color:#222;line-height:1.65}
+h1{font-size:34px}h2{font-size:22px;margin-top:30px}p{margin:12px 0}
+</style>
+</head>
+<body>
+${content}
+</body>
+</html>`;
+}
+function generate(){
+  const lang=val('language')||'es', parts=buildParts(lang), content=partsHtml(parts), plain=partsPlain(parts);
+  $('preview').innerHTML=content;$('plain').value=plain;$('contenthtml').value=content;$('fullhtml').value=standalone(content,lang);
+  $('summary').innerHTML=`<strong>${lang==='es'?'Sitio':'Website'}:</strong> ${esc(val('siteName')||val('siteUrl')||'-')} · <strong>${lang==='es'?'Jurisdicción':'Jurisdiction'}:</strong> ${esc(val('jurisdiction'))} · <strong>${lang==='es'?'Responsable':'Controller'}:</strong> ${esc(val('responsible')||'-')}`;
+}
+function tab(id,btn){
+  currentTab=id;
+  $('preview').classList.toggle('hidden',id!=='preview');
+  ['plain','contenthtml','fullhtml'].forEach(x=>$(x).classList.toggle('active',x===id));
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));btn.classList.add('active');
+}
+async function copyCurrent(){
+  const text=currentTab==='preview'?$('plain').value:$(currentTab).value;
+  try{await navigator.clipboard.writeText(text);alert('Copiado al portapapeles.')}catch(e){alert('No se pudo copiar automáticamente.')}
+}
+function download(name,content,type){
+  const b=new Blob([content],{type});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);
+}
+function downloadTxt(){download('politica-privacidad.txt',$('plain').value,'text/plain;charset=utf-8')}
+function downloadHtml(){download('politica-privacidad.html',$('fullhtml').value,'text/html;charset=utf-8')}
+</script>
+</body>
+</html>
